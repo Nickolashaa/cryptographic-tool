@@ -6,7 +6,6 @@ from services import CryptoGraphicService, FileService
 from ..keyboards import end_keyboard, to_main_menu
 
 
-
 code_router = Router()
 
 
@@ -23,7 +22,8 @@ async def start_code(callback: CallbackQuery, state: FSMContext) -> None:
         text="",
         last_message_id=message.message_id,
     )
-    
+
+
 @code_router.message(CodeState.text)
 async def add_text(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
@@ -34,12 +34,13 @@ async def add_text(message: Message, state: FSMContext) -> None:
     answer_message = await message.answer(
         text="Информация записана.",
         reply_markup=end_keyboard,
-        )
+    )
     await state.update_data(
-        text=data["text"] + message.text,
+        text=data["text"] + " " + message.text,
         last_message_id=answer_message.message_id,
     )
-    
+
+
 @code_router.callback_query(F.data == "end_code")
 async def add_secret_key(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
@@ -52,7 +53,8 @@ async def add_secret_key(callback: CallbackQuery, state: FSMContext) -> None:
         )
     )
     await state.set_state(CodeState.secret_key)
-    
+
+
 @code_router.message(CodeState.secret_key)
 async def code(message: Message, state: FSMContext) -> None:
     await state.update_data(secret_key=message.text)
@@ -65,7 +67,8 @@ async def code(message: Message, state: FSMContext) -> None:
         text=data["text"],
         secret_key=data["secret_key"],
     )
-    secret_file = BufferedInputFile(secret_file_bytes, filename="encrypted_image.jpg")
+    secret_file = BufferedInputFile(
+        secret_file_bytes, filename="encrypted_image.jpg")
     await message.answer("Ваша информация зашифрована и удалена с сервера.")
     await message.answer_photo(
         photo=secret_file,
